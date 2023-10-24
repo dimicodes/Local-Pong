@@ -13,22 +13,41 @@ const gameOverEl = document.createElement('div');
 const initialStart = document.createElement('div');
 let canvasColor = '#496aa3';
 
+
+
+
+// Easy and hard mode selectors
+let isEasyMode = false;
+let isHardMode = false;
+
+
+
+
 // Weather API Key
 const apiKey = 'd5be7e62025127435cae7e06f7abc1a1';
 
-// Paddle
+
+
+
+// Paddle details
 const paddleHeight = 10;
-const paddleWidth = 50;
-const paddleDiff = 25;
+let paddleWidth = 50;
+let paddleDiff = 25;
 let paddleBottomX = 225;
 let paddleTopX = 225;
 let playerMoved = false;
 let paddleContact = false;
 
-// Ball
+
+
+
+// Ball details
 let ballX = 250;
 let ballY = 350;
-const ballRadius = 5;
+let ballRadius = 5;
+
+
+
 
 // Speed
 let speedY;
@@ -36,7 +55,10 @@ let speedX;
 let trajectoryX;
 let computerSpeed;
 
-// Change Mobile Settings
+
+
+
+// Change settings if played on mobile
 if (isMobile.matches) {
   speedY = -2;
   speedX = speedY;
@@ -44,8 +66,11 @@ if (isMobile.matches) {
 } else {
   speedY = -1;
   speedX = speedY;
-  computerSpeed = 3;
+  computerSpeed = 4;
 }
+
+
+
 
 // Score
 let playerScore = 0;
@@ -54,22 +79,25 @@ const winningScore = 3;
 let isGameOver = true;
 let isNewGame = true;
 
-// Render Everything on Canvas
+
+
+
+// Render Everything on the Canvas
 function renderCanvas() {
-  // Canvas Background
+  // Canvas background
   context.fillStyle = canvasColor;
   context.fillRect(0, 0, width, height);
 
-  // Paddle Color
+  // Paddle color
   context.fillStyle = 'white';
 
-  // Player Paddle (Bottom)
+  // Player paddle (Bottom paddle)
   context.fillRect(paddleBottomX, height - 20, paddleWidth, paddleHeight);
 
-  // Computer Paddle (Top)
+  // Computer paddle (Top paddle)
   context.fillRect(paddleTopX, 10, paddleWidth, paddleHeight);
 
-  // Dashed Center Line
+  // Dashed center Line (ping pong net)
   context.beginPath();
   context.setLineDash([3]);
   context.moveTo(0, 348.5);
@@ -84,7 +112,7 @@ function renderCanvas() {
   context.strokeStyle = 'white';
   context.stroke();
 
-  // Table Vertical Divider Line
+  // Table vertical divider line
   context.beginPath();
   context.setLineDash([0]);
   context.moveTo(250, 0);
@@ -104,7 +132,10 @@ function renderCanvas() {
   context.fillText(computerScore, 20, canvas.height / 2 - 30);
 }
 
-// Create Canvas Element
+
+
+
+// Create canvas element
 function createCanvas() {
   canvas.width = width;
   canvas.height = height;
@@ -112,7 +143,10 @@ function createCanvas() {
   renderCanvas();
 }
 
-// Reset Ball to Center
+
+
+
+// Reset ball to the center
 function ballReset() {
   ballX = width / 2;
   ballY = height / 2;
@@ -120,17 +154,23 @@ function ballReset() {
   paddleContact = false;
 }
 
-// Adjust Ball Movement
+
+
+
+// Adjust ball movement
 function ballMove() {
-  // Vertical Speed
+  // Vertical speed
   ballY += -speedY;
-  // Horizontal Speed
+  // Horizontal speed
   if (playerMoved && paddleContact) {
     ballX += speedX;
   }
 }
 
-// Determine What Ball Bounces Off, Score Points, Reset Ball
+
+
+
+// Determine what ball bounces off, score points, reset ball
 function ballBoundaries() {
   // Bounce off Left Wall
   if (ballX < 0 && speedX < 0) {
@@ -155,7 +195,15 @@ function ballBoundaries() {
       }
       speedY = -speedY;
       trajectoryX = ballX - (paddleBottomX + paddleDiff);
-      speedX = trajectoryX * 0.3;
+      // if easy mode is on, ball speed is lower than other difficulty modes
+      if (isEasyMode) {
+        speedX = trajectoryX * 0.1;
+      } else if (isHardMode) {
+        speedX = trajectoryX * 0.4;
+        computerSpeed = 8;
+      } else {
+        speedX = trajectoryX * 0.3;
+      }
     } else if (ballY > height) {
       // Reset Ball, add to Computer Score
       ballReset();
@@ -175,33 +223,54 @@ function ballBoundaries() {
       }
       speedY = -speedY;
     } else if (ballY < 0) {
-      // Reset Ball, add to Player Score
+      // Reset Ball, add to Player's Score
       ballReset();
       playerScore++;
     }
   }
 }
 
+
+
+
 // Computer Movement
 function computerAI() {
-  // if (playerMoved) {
-  //   if (paddleTopX + paddleDiff < ballX) {
-  //     paddleTopX += computerSpeed;
-  //   } else {
-  //     paddleTopX -= computerSpeed;
-  //   }
-  // }
   if (playerMoved) {
-    if (paddleTopX + paddleDiff < ballX) {
+    if (paddleTopX + (paddleDiff * 0.3) < ballX) {
       paddleTopX += computerSpeed;
-    } else if (paddleTopX - paddleDiff > ballX) {
+    } else if (paddleTopX - (paddleDiff * 0.3) > ballX) {
       paddleTopX -= computerSpeed;
     }
   }
 }
 
+
+
+
+// function to keep track of last 5 game winners in local storage
+function updateGameHistory(winner) {
+  // Retrieve existing game history from local storage or initialize an empty array
+  const gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || [];
+
+  // Add the result of the current game to the history
+  gameHistory.push(winner);
+
+  // Keep only the last 5 results
+  if (gameHistory.length > 5) {
+    gameHistory.shift(); // Remove the oldest result
+  }
+
+  // Store the updated game history in local storage
+  localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
+}
+
+
+
+
 // Show game over screen with winner
 function showGameOverEl(winner) {
+  // Update game history in local storage
+  updateGameHistory(winner);
   // Hide Canvas
   canvas.hidden = 'true';
   // Container
@@ -209,16 +278,55 @@ function showGameOverEl(winner) {
   gameOverEl.classList.add('game-over-container');
   // Title
   const title = document.createElement('h1');
-  title.textContent = `${winner} Wins!`;
+  title.textContent = `${winner} wins!`;
+
+  // Create a table to display game history
+  const table = document.createElement('table');
+  const tableHead = document.createElement('thead');
+  const tableBody = document.createElement('tbody');
+  const tableRowHeader = document.createElement('tr');
+  const headerPlayer = document.createElement('th');
+  headerPlayer.textContent = 'Player';
+  const headerComputer = document.createElement('th');
+  headerComputer.textContent = 'CPU';
+
+
+  // Append table headers
+  tableRowHeader.appendChild(headerPlayer);
+  tableRowHeader.appendChild(headerComputer);
+  tableHead.appendChild(tableRowHeader);
+  table.appendChild(tableHead);
+
+  // Retrieve game history from local storage
+  const gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || [];
+
+  // Iterate over the last 5 game results and add rows to the table
+  for (const result of gameHistory) {
+    const tableRow = document.createElement('tr');
+    const cellPlayer = document.createElement('td');
+    const cellComputer = document.createElement('td');
+    cellPlayer.textContent = result === 'Player 1' ? 'Won' : 'Lost';
+    cellComputer.textContent = result === 'The computer' ? 'Won' : 'Lost';
+    tableRow.appendChild(cellPlayer);
+    tableRow.appendChild(cellComputer);
+    tableBody.appendChild(tableRow);
+  }
+
+  // Append table body to the table
+  table.appendChild(tableBody);  
+  
   // Button
   const playAgainBtn = document.createElement('button');
   playAgainBtn.setAttribute('onclick', 'startGame()');
   playAgainBtn.textContent = 'Play Again';
   // Append
-  gameOverEl.append(title, playAgainBtn);
+  gameOverEl.append(title, table, playAgainBtn);
   body.appendChild(gameOverEl);
   
 }
+
+
+
 
 // Initial screen on first page load
 function initialStartFunc() {
@@ -235,6 +343,7 @@ function initialStartFunc() {
   
   // Button
   const initialStartBtn = document.createElement('button');
+  initialStartBtn.disabled = true;
   initialStartBtn.setAttribute('onclick', 'startGame()');
   initialStartBtn.textContent = 'START';
   initialStartBtn.classList.add('start-button');
@@ -251,15 +360,17 @@ function initialStartFunc() {
   easyBtn.addEventListener('click', function() {
     easyMode(); 
     changeColor(this);
+    initialStartBtn.disabled = false;
+
   });
 
   const normalBtn = document.createElement('button');
-  normalBtn.setAttribute('onclick', 'normalMode()');
+  // normalBtn.setAttribute('onclick', 'normalMode()');
   normalBtn.textContent = 'Normal';
   normalBtn.classList.add('mode-button');
   normalBtn.addEventListener('click', function() {
-    normalMode(); 
     changeColor(this);
+    initialStartBtn.disabled = false;
   });
 
   const hardBtn = document.createElement('button');
@@ -269,7 +380,9 @@ function initialStartFunc() {
   hardBtn.addEventListener('click', function() {
     hardMode(); 
     changeColor(this);
+    initialStartBtn.disabled = false;
   });
+
   // Append
   buttonContainer.append(easyBtn, normalBtn, hardBtn);
   initialStart.append(logo, initialStartBtn, difficultyTitle, easyBtn, normalBtn, hardBtn);
@@ -278,8 +391,9 @@ function initialStartFunc() {
 }
 
 
-let lastClickedButton = null;
 
+
+let lastClickedButton = null;
 function changeColor(button) {
   // Remove the highlighting class from all buttons
   const buttons = document.querySelectorAll('.mode-button');
@@ -291,23 +405,29 @@ function changeColor(button) {
   button.classList.add('mode-button-clicked');
 }
 
-// Check If One Player Has Winning Score, If They Do, End Game
+
+
+
+// Check if one player has a winning score, if so, end game
 function gameOver() {
   if (playerScore === winningScore || computerScore === winningScore) {
     isGameOver = true;
     // Set Winner
     let winner;
     if (playerScore === winningScore) {
-    winner = "Player";
+    winner = "Player 1";
   } else {
-    winner = "Computer"
+    winner = "The computer"
   }
     // const winner = playerScore === winningScore ? 'Player 1' : 'Computer';
     showGameOverEl(winner);
   }
 }
 
-// Called Every Frame
+
+
+
+// Called every frame
 function animate() {
   renderCanvas();
   ballMove();
@@ -318,6 +438,9 @@ function animate() {
     window.requestAnimationFrame(animate);
   }
 }
+
+
+
 
 // Start Game, Reset Everything
 function startGame() {
@@ -372,6 +495,9 @@ function getLocation() {
   );
 }
 
+
+
+
 // Gets user's location and fetches weather data
 function updateMyLocation(position) {
   userLatitude = position.coords.latitude;
@@ -380,6 +506,9 @@ function updateMyLocation(position) {
   console.log(userLongitude);
   fetchWeatherData(userLatitude,userLongitude);
 }
+
+
+
 
 // Error messages
 function handleError(error) {
@@ -396,12 +525,17 @@ function handleError(error) {
   }
 }
 
+
+
+
 // Writes error messages if error
 function updateStatus(message) {
   console.log("testing");
     // document.getElementById("status").innerHTML = 
     //     "<strong>Error</strong>: " + message;
 }
+
+
 
 
 // Function to fetch weather data
@@ -421,7 +555,7 @@ function fetchWeatherData(lat, lon) {
         const weatherCondition = data.weather[0].main;
 
         // Select color theme based on current weather from API
-        if (weatherCondition === "Clouds") {
+        if (weatherCondition === "Clouds" || "Mist" || "Smoke" || "Haze" || "Dust" || "Fog" || "Sand" || "Dust" || "Ash" || "Squall") {
           makeCloudy();
         } else if (weatherCondition === "Clear") {
           makeSunny();
@@ -429,7 +563,7 @@ function fetchWeatherData(lat, lon) {
           makeRainy();
         } else if (weatherCondition === "Drizzle") {
           makeDrizzly();
-        } else if (weatherCondition === "Thunderstorm") {
+        } else if (weatherCondition === "Thunderstorm" || "Tornado") {
           makeStormy();
         } else if (weatherCondition === "Snow") {
           makeSnowy();
@@ -442,13 +576,15 @@ function fetchWeatherData(lat, lon) {
 }}
 
 
+
+
 // Functions to change color scheme of page based on weather
 function makeSunny() {
   const body = document.body;
   body.style.backgroundImage = 'url("images/sunnyday.jpg")';
   body.style.backgroundSize = 'cover';
   body.style.backgroundAttachment = 'fixed'; 
-  canvasColor = '#a289b0';
+  canvasColor = '#5a466c';
 }
 
 function makeCloudy() {
@@ -497,16 +633,19 @@ function makeStormy() {
 
 //----------------- DIFFICULTY LEVEL CHANGES TO THE GAME -----------------//
 function easyMode() {
-
-}
-
-function normalMode() {
-
+  isEasyMode = true;
+  paddleWidth = 100;
+  ballRadius = 8;
 }
 
 function hardMode() {
-
+  isHardMode = true;
+  paddleWidth = 30;
+  ballRadius = 5;
 }
+
+
+
 
 
 // On Load
