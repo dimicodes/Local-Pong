@@ -1,13 +1,12 @@
 body {
   margin: 0;
-  background-color: #DCE5DC;
+  background-color: #60676C;
   display: flex;
   justify-content: center;
   font-family: "Arial", Arial, monospace;
 } 
 
 canvas {
-  /* margin-top: 25px; */
   margin-top: 60px;
   z-index: 10;
   border: 3px solid white;
@@ -20,7 +19,7 @@ canvas {
   transform: translate(-50%, -50%);
   width: 500px;
   height: 700px;
-  background-color: #162F3A;
+  background-color: #26292B;
   margin-top: -4px;
   z-index: 11;
   display: flex;
@@ -31,6 +30,15 @@ canvas {
   border-radius: 7px;
 }
 
+
+th, tr {
+  text-align: center; 
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+
+}
+
 .initial-start-container {
   position: absolute;
   top: 50%;
@@ -38,7 +46,7 @@ canvas {
   transform: translate(-50%, -50%);
   width: 500px;
   height: 700px;
-  background-color: #162F3A;
+  background-color: #26292B;
   margin-top: -4px;
   z-index: 11;
   display: flex;
@@ -52,7 +60,7 @@ canvas {
 button {
   cursor: pointer;
   color: rgb(0, 0, 0);
-  background-color: #DCE5DC;
+  background-color: #ccd0d1;
   border: none;
   height: 50px;
   width: 200px;
@@ -65,7 +73,7 @@ button {
 
 .start-button {
   margin-bottom: 40px;
-  background-color: #E85A3C;
+  background-color: #D33E43;
   color: white;
   font-size: 24px;
   letter-spacing: 2px;
@@ -80,15 +88,15 @@ button {
   display: flex !important;
   flex-direction: row !important;
   justify-content: center !important;
-  text-align: center !important; /* Center-align the buttons */
-  white-space: nowrap !important; /* Prevent line breaks for inline elements */
+  text-align: center !important; 
+  white-space: nowrap !important;
 }
 
 
 .mode-button {
   cursor: pointer;
   color: rgb(0, 0, 0);
-  background-color: #DCE5DC;
+  background-color: #ccd0d1;
   border: none;
   height: 50px;
   width: 65px;
@@ -101,7 +109,7 @@ button {
 }
 
 .logo {
-  background-image: url("images/localpong.png");
+  background-image: url("images/localpong.svg");
   background-size: cover;
   background-position: center;
   width: 80%;
@@ -110,7 +118,7 @@ button {
 }
 
 .mode-button-clicked {
-  background-color: #97AFA1; 
+  background-color: #94C7A6; 
 }
 
 button:hover {
